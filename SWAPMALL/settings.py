@@ -85,18 +85,24 @@ WSGI_APPLICATION = 'SWAPMALL.wsgi.application'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
 DATABASES = {
-  "default": {
-    "ENGINE": "django.db.backends.mysql",
-    "NAME": "swapmallDB",
-    "USER": "root",
-    "PASSWORD": "K#9v2p!zR7m*Q4xW",
-    "HOST": "217.160.38.67",
-    "PORT": "3306",
-    "OPTIONS": {
-      "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
-    },
-  }
+    "default": {
+        "ENGINE": os.getenv("DB_ENGINE", "django.db.backends.mysql"),
+        "NAME": os.getenv("DB_NAME", "swapmallDB"),
+        "USER": os.getenv("DB_USER", "remoteuser"),
+        "PASSWORD": os.getenv("DB_PASSWORD", "StrongPassword"),
+        "HOST": os.getenv("DB_HOST", "3.67.8.133"),
+        "PORT": os.getenv("DB_PORT", "3306"),
+        "OPTIONS": {
+            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+            "charset": "utf8mb4",
+            "connect_timeout": int(os.getenv("DB_CONNECT_TIMEOUT", "10")),
+        },
+    }
 }
+
+DB_SSL_CA = os.getenv("DB_SSL_CA", "").strip()
+if DB_SSL_CA:
+    DATABASES["default"]["OPTIONS"]["ssl"] = {"ca": DB_SSL_CA}
 
 
 # Password validation
