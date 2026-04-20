@@ -26,7 +26,15 @@ SECRET_KEY = 'django-insecure-g==681yp7$(7&$yat7r=r%yyi2ij16gb^m(d#x-em4=ldixic)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    "pay-swap.com",
+    "www.pay-swap.com",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://pay-swap.com",
+    "https://www.pay-swap.com",
+]
 
 
 # Application definition
