@@ -1,0 +1,38 @@
+{% extends "base_vendor.html" %}
+{% load secure_ids money_tags %}
+{% block title %}Offers{% endblock %}
+{% block content %}
+<section class="card">
+  <a class="btn" href="{% url 'vendorapp:offer-create' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Create Offer</a>
+</section>
+<section class="card">
+  <table>
+    <thead><tr><th>Name</th><th>Vendor</th><th>Type</th><th>Discount</th><th>Products</th><th>Period</th><th>Status</th><th>Action</th></tr></thead>
+    <tbody>
+      {% for offer in offers %}
+      <tr>
+        <td>{{ offer.name }}</td>
+        <td>{{ offer.vendor.name }}</td>
+        <td>{{ offer.get_offer_type_display }}</td>
+        <td>
+          {% if offer.discount_type == 'percent' %}
+            {{ offer.discount_value }}%
+          {% else %}
+            {{ offer.discount_value|money:offer.vendor }}
+          {% endif %}
+        </td>
+        <td>{{ offer.products.count }}</td>
+        <td>{{ offer.starts_at }} to {{ offer.ends_at }}</td>
+        <td>{% if offer.is_active %}Active{% else %}Inactive{% endif %}</td>
+        <td>
+          <a class="btn alt" href="{% url 'vendorapp:offer-update' offer.pk|encid %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Edit</a>
+          <a class="btn" href="{% url 'vendorapp:offer-toggle' offer.pk|encid %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Toggle</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8">No offers found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

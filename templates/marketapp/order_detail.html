@@ -1,0 +1,36 @@
+{% extends "base_vendor.html" %}
+{% load secure_ids money_tags %}
+{% block title %}Order {{ order.order_number }}{% endblock %}
+{% block content %}
+<section class="card">
+  <h3>Order {{ order.order_number }}</h3>
+  <p><strong>Customer:</strong> {{ order.customer_name }}{% if order.customer_email %} ({{ order.customer_email }}){% endif %}</p>
+  <p><strong>Total:</strong> {{ order.total_amount|money:order.vendor }}</p>
+  <form method="post">
+    {% csrf_token %}
+    {% if selected_vendor %}
+    <input type="hidden" name="selected_vendor_id" value="{{ selected_vendor.id|encid }}">
+    {% endif %}
+    {{ form.as_p }}
+    <button class="btn" type="submit">Update Status</button>
+  </form>
+</section>
+<section class="card">
+  <h4>Items</h4>
+  <table>
+    <thead><tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>Line Total</th></tr></thead>
+    <tbody>
+      {% for item in order.items.all %}
+      <tr>
+        <td>{{ item.product_name }}</td>
+        <td>{{ item.quantity }}</td>
+        <td>{{ item.unit_price|money:order.vendor }}</td>
+        <td>{{ item.line_total|money:order.vendor }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4">No items in this order.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

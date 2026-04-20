@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SwapMall Market{% endblock %}</title>
+  <style>
+    :root {
+      --bg: {{ theme.background_color|default:'#f5f7f4' }};
+      --text: {{ theme.text_color|default:'#1d2523' }};
+      --primary: {{ theme.primary_color|default:'#1b4d3e' }};
+      --accent: {{ theme.secondary_color|default:'#f4a259' }};
+      --card: #ffffff;
+      --muted: #667874;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      min-height: 100vh;
+      padding-bottom: 56px;
+    }
+    .top {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--primary);
+      color: #fff;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .top a { color: #fff; text-decoration: none; font-size: 0.9rem; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 14px; }
+    .base-footer {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 20;
+      text-align: center;
+      padding: 10px 12px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.84rem;
+      border-top: 2px solid var(--secondary);
+    }
+    {% block page_css %}{% endblock %}
+  </style>
+</head>
+<body>
+  <header class="top">{% block topbar %}{% endblock %}</header>
+  {% block content %}{% endblock %}
+  <footer class="base-footer">SWAPMALL by swapkuwait</footer>
+  {% block page_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,46 @@
+{% extends "base_vendor.html" %}
+{% load secure_ids %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<section class="card">
+  <h3>{{ title }}</h3>
+  {% if package_status and not package_status.can_add_products %}
+  <div style="margin-bottom:10px;color:#b42318;">{{ package_status.message }}</div>
+  {% endif %}
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% if selected_vendor %}
+    <input type="hidden" name="selected_vendor_id" value="{{ selected_vendor.id|encid }}">
+    {% endif %}
+    {{ form.as_p }}
+    <p style="font-size:0.88rem;color:#4f5f5a;margin-top:-6px;">
+      For digital products: enable <strong>Is digital</strong> and upload <strong>Digital file</strong>.
+    </p>
+    <button class="btn" type="submit">Save</button>
+  </form>
+</section>
+{% if form.instance.pk and form.instance.gallery.all %}
+<section class="card">
+  <h4>Current Gallery</h4>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+    {% for image in form.instance.gallery.all %}
+      <img src="{{ image.image.url }}" alt="{{ image.alt_text|default:form.instance.name }}" style="width:84px;height:84px;border-radius:10px;object-fit:cover;">
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+<script>
+(function () {
+  const digitalCheckbox = document.getElementById("id_is_digital");
+  const stockInput = document.getElementById("id_stock_quantity");
+  if (!digitalCheckbox || !stockInput) return;
+  function syncDigitalHint() {
+    if (digitalCheckbox.checked) {
+      if (!stockInput.value || Number(stockInput.value) < 1) stockInput.value = 1;
+    }
+  }
+  digitalCheckbox.addEventListener("change", syncDigitalHint);
+  syncDigitalHint();
+})();
+</script>
+{% endblock %}

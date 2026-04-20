@@ -1,0 +1,28 @@
+{% extends "base_vendor.html" %}
+{% load secure_ids %}
+{% block title %}Categories{% endblock %}
+{% block content %}
+<section class="card">
+  <a class="btn" href="{% url 'vendorapp:category-create' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Create Category</a>
+</section>
+<section class="card">
+  <table>
+    <thead><tr><th>Name</th><th>Vendor</th><th>Status</th><th>Action</th></tr></thead>
+    <tbody>
+      {% for category in categories %}
+      <tr>
+        <td>{{ category.name }}</td>
+        <td>{{ category.vendor.name }}</td>
+        <td>{% if category.is_active %}Active{% else %}Inactive{% endif %}</td>
+        <td>
+          <a class="btn alt" href="{% url 'vendorapp:category-update' category.pk|encid %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Edit</a>
+          <a class="btn" href="{% url 'vendorapp:category-delete' category.pk|encid %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Delete</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4">No categories found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

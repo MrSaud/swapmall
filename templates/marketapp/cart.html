@@ -1,0 +1,79 @@
+{% extends "base_market.html" %}
+{% load secure_ids money_tags %}
+
+{% block title %}Your Cart{% endblock %}
+
+{% block page_css %}
+.wrap { max-width: 980px; }
+.card { background: #fff; border-radius: 12px; padding: 12px; margin-bottom: 10px; border: 1px solid #dde6e2; }
+.msg { background: #ecfdf3; border-color: #abefc6; color: #067647; }
+.msg.error { background: #fef3f2; border-color: #fecdca; color: #b42318; }
+.msg.warning { background: #fffaeb; border-color: #fedf89; color: #b54708; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 10px 6px; border-bottom: 1px solid #edf2f0; }
+.qty { width: 72px; padding: 8px; border: 1px solid #cfdad5; border-radius: 8px; }
+.btn { border: 0; background: #1b4d3e; color: #fff; border-radius: 8px; padding: 8px 10px; }
+.btn.warn { background: #a03232; }
+.footer { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+{% endblock %}
+
+{% block topbar %}
+<strong>&#128717; Your Bag ({{ cart_count }})</strong>
+<a href="{% url 'marketapp:home' %}">Continue Shopping</a>
+{% endblock %}
+
+{% block content %}
+<main class="wrap">
+  {% if messages %}
+    {% for message in messages %}
+    <div class="card msg {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  {% if items %}
+  <section class="card">
+    <table>
+      <thead><tr><th>Product</th><th>Vendor</th><th>Price</th><th>Qty</th><th>Total</th><th></th></tr></thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td>{{ item.product.name }}{% if item.product.is_digital %} <small style="color:#0b7a45;">(Digital)</small>{% endif %}</td>
+          <td>{{ item.product.vendor.name }}</td>
+          <td>
+            {{ item.effective_price|money:item.product.vendor }}
+            {% if item.has_discount %}
+              <small style="display:block;color:#a15b1b;text-decoration:line-through;">{{ item.original_price|money:item.product.vendor }}</small>
+            {% endif %}
+          </td>
+          <td>
+            <form method="post" action="{% url 'marketapp:cart-item-update' item.id|encid %}" style="display:flex;gap:6px;align-items:center;">
+              {% csrf_token %}
+              <input class="qty" type="number" min="1" max="99" name="quantity" value="{{ item.quantity }}">
+              <button class="btn" type="submit">Update</button>
+            </form>
+          </td>
+          <td>{{ item.line_total_display|money:item.product.vendor }}</td>
+          <td>
+            <form method="post" action="{% url 'marketapp:cart-item-remove' item.id|encid %}">
+              {% csrf_token %}
+              <button class="btn warn" type="submit">Remove</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  <section class="card footer">
+    {% if mixed_currencies %}
+    <strong>Subtotal: Mixed currencies</strong>
+    {% else %}
+    <strong>Subtotal: {{ subtotal|money:subtotal_vendor }}</strong>
+    {% endif %}
+    <a class="btn" href="{% url 'marketapp:checkout' %}">&#128179; Proceed to Pay</a>
+  </section>
+  {% else %}
+  <section class="card">Your cart is empty.</section>
+  {% endif %}
+</main>
+{% endblock %}

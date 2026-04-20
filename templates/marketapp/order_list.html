@@ -1,0 +1,27 @@
+{% extends "base_vendor.html" %}
+{% load secure_ids money_tags %}
+{% block title %}Orders{% endblock %}
+{% block content %}
+<section class="card">
+  <a class="btn alt" href="{% url 'vendorapp:order-export' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Export CSV</a>
+  <a class="btn alt" href="{% url 'vendorapp:saved-filter-create' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Save Current View</a>
+</section>
+<section class="card">
+  <table>
+    <thead><tr><th>Order</th><th>Vendor</th><th>Status</th><th>Total</th><th></th></tr></thead>
+    <tbody>
+      {% for order in orders %}
+      <tr>
+        <td>{{ order.order_number }}</td>
+        <td>{{ order.vendor.name }}</td>
+        <td>{{ order.get_status_display }}</td>
+        <td>{{ order.total_amount|money:order.vendor }}</td>
+        <td><a class="btn alt" href="{% url 'marketapp:order-detail' order.pk|encid %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Open</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5">No orders yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

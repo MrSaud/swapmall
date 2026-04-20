@@ -1,0 +1,41 @@
+{% extends "vendorapp/base.html" %}
+{% block title %}Staff Users{% endblock %}
+{% block content %}
+<section class="card">
+  <a class="btn" href="{% url 'vendorapp:staff-create' %}{% if selected_vendor %}?vendor={{ selected_vendor.id }}{% endif %}">Add Staff User</a>
+</section>
+
+<section class="card">
+  <h3>Staff Members</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Vendor</th>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in staff_list %}
+        <tr>
+          <td>{{ item.vendor.name }}</td>
+          <td>{{ item.user.username }}</td>
+          <td>{{ item.user.email|default:"-" }}</td>
+          <td>{{ item.get_role_display }}</td>
+          <td>{% if item.is_active %}Active{% else %}Inactive{% endif %}</td>
+          <td>
+            <a class="btn alt" href="{% url 'vendorapp:staff-toggle' item.id %}">
+              {% if item.is_active %}Deactivate{% else %}Activate{% endif %}
+            </a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6">No staff users found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base_vendor.html" %}
+{% load secure_ids %}
+{% block title %}Theme Settings{% endblock %}
+{% block content %}
+<section class="card">
+  <h3>Vendor Theme Settings</h3>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% if selected_vendor %}
+    <input type="hidden" name="selected_vendor_id" value="{{ selected_vendor.id|encid }}">
+    {% endif %}
+    {{ form.as_p }}
+    <datalist id="currency-code-list">
+      {% for code, name in form.currency_options %}
+        <option value="{{ code }}">{{ code }} - {{ name }}</option>
+      {% endfor %}
+    </datalist>
+    <button class="btn" type="submit">Save Theme</button>
+  </form>
+</section>
+{% endblock %}

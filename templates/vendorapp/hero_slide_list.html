@@ -1,0 +1,31 @@
+{% extends "base_vendor.html" %}
+{% load secure_ids %}
+{% block title %}Hero Slides{% endblock %}
+{% block content %}
+<section class="card">
+  <a class="btn" href="{% url 'vendorapp:hero-slide-create' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Create Hero Slide</a>
+</section>
+<section class="card">
+  <table>
+    <thead><tr><th>Title</th><th>Subtitle</th><th>Vendor</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for slide in slides %}
+      <tr>
+        <td>{{ slide.title }}</td>
+        <td>{{ slide.subtitle|default:"-" }}</td>
+        <td>{{ slide.vendor.name }}</td>
+        <td>{{ slide.sort_order }}</td>
+        <td>{% if slide.is_active %}Active{% else %}Inactive{% endif %}</td>
+        <td>
+          <a class="btn alt" href="{% url 'vendorapp:hero-slide-update' slide.pk|encid %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Edit</a>
+          <a class="btn alt" href="{% url 'vendorapp:hero-slide-toggle' slide.pk|encid %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Toggle</a>
+          <a class="btn" href="{% url 'vendorapp:hero-slide-delete' slide.pk|encid %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Delete</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6">No hero slides found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

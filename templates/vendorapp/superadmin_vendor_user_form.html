@@ -1,0 +1,16 @@
+{% extends "base_vendor.html" %}
+{% load secure_ids %}
+{% block title %}Create Vendor + User{% endblock %}
+{% block content %}
+<section class="card">
+  <h3>Create New Vendor and Assign New User</h3>
+  <form method="post">
+    {% csrf_token %}
+    {% if selected_vendor %}
+    <input type="hidden" name="selected_vendor_id" value="{{ selected_vendor.id|encid }}">
+    {% endif %}
+    {{ form.as_p }}
+    <button class="btn" type="submit">Create Vendor + User</button>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base_market.html" %}
+{% load money_tags %}
+
+{% block title %}Checkout{% endblock %}
+
+{% block page_css %}
+.wrap { max-width: 760px; }
+.card { background: #fff; border-radius: 12px; padding: 12px; margin-bottom: 10px; border: 1px solid #dde6e2; }
+.msg { background: #ecfdf3; border-color: #abefc6; color: #067647; }
+.msg.error { background: #fef3f2; border-color: #fecdca; color: #b42318; }
+.msg.warning { background: #fffaeb; border-color: #fedf89; color: #b54708; }
+.field { margin-bottom: 10px; }
+.field input { width: 100%; padding: 10px; border: 1px solid #ced9d4; border-radius: 8px; }
+.btn { border: 0; background: #1b4d3e; color: #fff; border-radius: 8px; padding: 10px 12px; }
+{% endblock %}
+
+{% block topbar %}
+<strong>Checkout</strong>
+<a href="{% url 'marketapp:cart' %}">Back to Cart</a>
+{% endblock %}
+
+{% block content %}
+<main class="wrap">
+  {% if messages %}
+    {% for message in messages %}
+    <div class="card msg {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <section class="card">
+    <h3>Order Summary</h3>
+    <ul>
+      {% for item in items %}
+      <li>
+        {{ item.product.name }} x {{ item.quantity }} ({{ item.product.vendor.name }})
+        {% if item.product.is_digital %}<strong style="color:#0b7a45;"> · Digital</strong>{% endif %}
+        - {{ item.line_total_display|money:item.product.vendor }}
+      </li>
+      {% endfor %}
+    </ul>
+    {% if mixed_currencies %}
+    <strong>Total: Mixed currencies</strong>
+    {% else %}
+    <strong>Total: {{ subtotal|money:subtotal_vendor }}</strong>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h3>Customer Details</h3>
+    <form method="post">
+      {% csrf_token %}
+      <div class="field">
+        <label>Full Name</label>
+        <input type="text" name="customer_name" required>
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" name="customer_email">
+      </div>
+      <button class="btn" type="submit">Proceed to Pay</button>
+    </form>
+  </section>
+</main>
+{% endblock %}

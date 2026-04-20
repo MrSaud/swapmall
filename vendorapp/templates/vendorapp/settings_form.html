@@ -1,0 +1,13 @@
+{% extends "vendorapp/base.html" %}
+{% block title %}Theme Settings{% endblock %}
+{% block content %}
+<section class="card">
+  <h3>Vendor Theme Settings{% if selected_vendor %}: {{ selected_vendor.name }}{% endif %}</h3>
+  <p class="muted">Theme colors below are applied to the mobile and desktop management portal for this vendor.</p>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn">Save Theme</button>
+  </form>
+</section>
+{% endblock %}

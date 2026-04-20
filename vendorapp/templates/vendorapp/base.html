@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Vendor Portal{% endblock %}</title>
+  <style>
+    :root {
+      --primary: {{ theme.primary_color|default:'#1B4D3E' }};
+      --secondary: {{ theme.secondary_color|default:'#F4A259' }};
+      --bg: {{ theme.background_color|default:'#F5F7F4' }};
+      --text: {{ theme.text_color|default:'#1C1C1C' }};
+      --card: #ffffff;
+      --muted: #6b7280;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(140deg, var(--bg), #ffffff);
+      color: var(--text);
+    }
+    .shell {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+    .topbar {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 0.85rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.06);
+    }
+    .brand {
+      color: var(--primary);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem;
+    }
+    .nav {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .nav a {
+      text-decoration: none;
+      color: white;
+      background: var(--primary);
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+    }
+    .nav a.secondary {
+      background: var(--secondary);
+      color: #1f2937;
+      font-weight: 600;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 1rem;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+      margin-bottom: 1rem;
+    }
+    .grid {
+      display: grid;
+      gap: 0.9rem;
+    }
+    .grid-3 { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+    .muted { color: var(--muted); font-size: 0.9rem; }
+    .btn {
+      background: var(--primary);
+      color: #fff;
+      border: 0;
+      border-radius: 10px;
+      padding: 0.6rem 0.9rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn.warn { background: #b91c1c; }
+    .btn.alt { background: var(--secondary); color: #111827; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+    th, td {
+      text-align: left;
+      padding: 0.55rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 0.55rem;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      margin-top: 0.25rem;
+      margin-bottom: 0.7rem;
+    }
+    .messages {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .messages li {
+      background: #ecfccb;
+      border: 1px solid #d9f99d;
+      color: #3f6212;
+      border-radius: 10px;
+      padding: 0.65rem 0.8rem;
+      margin-bottom: 0.7rem;
+    }
+    .inline-form {
+      display: flex;
+      gap: 0.5rem;
+      align-items: end;
+      flex-wrap: wrap;
+    }
+    .inline-form select { max-width: 260px; margin-bottom: 0; }
+
+    @media (max-width: 680px) {
+      .shell { padding: 0.7rem; }
+      .topbar, .card { border-radius: 12px; padding: 0.8rem; }
+      .nav a { font-size: 0.82rem; }
+      table { font-size: 0.84rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="topbar">
+      <h1 class="brand">SwapMall Vendor Console</h1>
+      <nav class="nav">
+        <a href="{% url 'vendorapp:dashboard' %}">Dashboard</a>
+        <a href="{% url 'vendorapp:product-list' %}">Products</a>
+        <a href="{% url 'marketapp:order-list' %}">Orders</a>
+        <a href="{% url 'vendorapp:staff-list' %}">Staff Users</a>
+        <a class="secondary" href="{% url 'vendorapp:settings' %}">Theme Settings</a>
+      </nav>
+    </section>
+
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    {% if vendors %}
+      <section class="card">
+        <form class="inline-form" method="get">
+          <label for="vendor"><strong>Active Vendor</strong></label>
+          <select name="vendor" id="vendor">
+            {% for vendor in vendors %}
+              <option value="{{ vendor.id }}" {% if selected_vendor and vendor.id == selected_vendor.id %}selected{% endif %}>{{ vendor.name }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn alt">Apply</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

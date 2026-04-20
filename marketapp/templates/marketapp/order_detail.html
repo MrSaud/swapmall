@@ -1,0 +1,43 @@
+{% extends "vendorapp/base.html" %}
+{% load money_tags %}
+{% block title %}Order {{ order.order_number }}{% endblock %}
+{% block content %}
+<section class="card">
+  <h3>Order {{ order.order_number }}</h3>
+  <p><strong>Vendor:</strong> {{ order.vendor.name }}</p>
+  <p><strong>Customer:</strong> {{ order.customer_name }}{% if order.customer_email %} ({{ order.customer_email }}){% endif %}</p>
+  <p><strong>Total:</strong> {{ order.total_amount|money:order.vendor }}</p>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn">Update Status</button>
+  </form>
+</section>
+
+<section class="card">
+  <h4>Order Items</h4>
+  <table>
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Price</th>
+        <th>Qty</th>
+        <th>Line Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in order.items.all %}
+        <tr>
+          <td>{{ item.product_name }}</td>
+          <td>{{ item.unit_price|money:order.vendor }}</td>
+          <td>{{ item.quantity }}</td>
+          <td>{{ item.line_total|money:order.vendor }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4">No line items yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

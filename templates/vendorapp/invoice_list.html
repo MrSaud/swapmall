@@ -1,0 +1,27 @@
+{% extends "base_vendor.html" %}
+{% load secure_ids %}
+{% block title %}Invoices{% endblock %}
+{% block content %}
+<section class="card">
+  <a class="btn" href="{% url 'vendorapp:invoice-create' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Create Invoice</a>
+</section>
+<section class="card">
+  <table>
+    <thead><tr><th>Vendor</th><th>Package</th><th>Amount</th><th>Due Date</th><th>Paid</th><th>Action</th></tr></thead>
+    <tbody>
+      {% for invoice in invoices %}
+      <tr>
+        <td>{{ invoice.vendor.name }}</td>
+        <td>{{ invoice.package.name }}</td>
+        <td>{{ invoice.amount }} {{ invoice.currency_code }}</td>
+        <td>{{ invoice.due_date }}</td>
+        <td>{% if invoice.is_paid %}Yes{% else %}No{% endif %}</td>
+        <td><a class="btn alt" href="{% url 'vendorapp:invoice-toggle-paid' invoice.pk|encid %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Toggle Paid</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6">No invoices found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

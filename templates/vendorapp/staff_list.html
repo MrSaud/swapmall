@@ -1,0 +1,29 @@
+{% extends "base_vendor.html" %}
+{% load secure_ids %}
+{% block title %}Staff Users{% endblock %}
+{% block content %}
+<section class="card">
+  <a class="btn" href="{% url 'vendorapp:staff-create' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Add Staff User</a>
+  {% if request.user.is_superuser %}
+  <a class="btn alt" href="{% url 'vendorapp:superadmin-vendor-user-create' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Add Vendor + User</a>
+  {% endif %}
+</section>
+<section class="card">
+  <table>
+    <thead><tr><th>Username</th><th>Vendor</th><th>Role</th><th>Status</th><th>Action</th></tr></thead>
+    <tbody>
+      {% for item in staff_list %}
+      <tr>
+        <td>{{ item.user.username }}</td>
+        <td>{{ item.vendor.name }}</td>
+        <td>{{ item.get_role_display }}</td>
+        <td>{% if item.is_active %}Active{% else %}Inactive{% endif %}</td>
+        <td><a class="btn alt" href="{% url 'vendorapp:staff-toggle' item.pk|encid %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Toggle</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5">No staff users found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

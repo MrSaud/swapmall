@@ -1,0 +1,70 @@
+{% extends "base_vendor.html" %}
+{% load money_tags secure_ids %}
+{% block title %}Analytics{% endblock %}
+{% block content %}
+<div class="grid">
+  <section class="card metric"><strong>Total Products</strong><div>{{ total_products }}</div></section>
+  <section class="card metric"><strong>Active Products</strong><div>{{ active_products }}</div></section>
+  <section class="card metric"><strong>Total Orders</strong><div>{{ total_orders }}</div></section>
+  <section class="card metric"><strong>Total Revenue</strong><div>{{ total_revenue|money:selected_vendor }}</div></section>
+  <section class="card metric"><strong>Pending Orders</strong><div>{{ pending_orders }}</div></section>
+  <section class="card metric"><strong>Processing Orders</strong><div>{{ processing_orders }}</div></section>
+</div>
+
+<section class="card">
+  <h3>Top Products</h3>
+  <table>
+    <thead><tr><th>Name</th><th>Sold Qty</th><th>Orders</th><th>Stock</th></tr></thead>
+    <tbody>
+      {% for product in top_products %}
+      <tr>
+        <td>{{ product.name }}</td>
+        <td>{{ product.sold_qty|default:0 }}</td>
+        <td>{{ product.order_count|default:0 }}</td>
+        <td>{{ product.stock_quantity }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4">No data yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="card">
+  <h3>Low Stock</h3>
+  <table>
+    <thead><tr><th>Product</th><th>Stock</th><th>Action</th></tr></thead>
+    <tbody>
+      {% for product in low_stock_products %}
+      <tr>
+        <td>{{ product.name }}</td>
+        <td>{{ product.stock_quantity }}</td>
+        <td><a class="btn alt" href="{% url 'vendorapp:product-stock-adjust' product.pk|encid %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Adjust</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3">No low stock products.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="card">
+  <h3>Recent Stock Movements</h3>
+  <table>
+    <thead><tr><th>Product</th><th>Type</th><th>Delta</th><th>By</th><th>Date</th></tr></thead>
+    <tbody>
+      {% for movement in recent_movements %}
+      <tr>
+        <td>{{ movement.product.name }}</td>
+        <td>{{ movement.get_movement_type_display }}</td>
+        <td>{{ movement.quantity_delta }}</td>
+        <td>{% if movement.created_by %}{{ movement.created_by.username }}{% else %}-{% endif %}</td>
+        <td>{{ movement.created_at }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5">No movements.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

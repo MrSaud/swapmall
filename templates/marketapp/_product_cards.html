@@ -1,0 +1,78 @@
+{% load secure_ids money_tags %}
+{% for product in products %}
+<article class="card product-card"
+  data-name="{{ product.name|escapejs }}"
+  data-vendor="{{ product.vendor.name|escapejs }}"
+  data-price="{{ product.display_price|default:product.price|money:product.vendor|escapejs }}"
+  data-desc="{{ product.description|default:''|truncatechars:220|escapejs }}"
+  data-url="{% url 'marketapp:product-detail' product.id|encid %}"
+  data-cart-url="{% url 'marketapp:cart-add' product.id|encid %}"
+  data-image="{% if product.main_thumbnail %}{{ product.main_thumbnail.url }}{% elif product.gallery.first %}{{ product.gallery.first.image.url }}{% endif %}"
+>
+  <a href="{% url 'marketapp:product-detail' product.id|encid %}" class="thumb-link">
+    <div class="thumb-stack">
+      {% if product.main_thumbnail %}
+        <img class="thumb" src="{{ product.main_thumbnail.url }}" alt="{{ product.name }}" loading="lazy" decoding="async">
+      {% elif product.gallery.first %}
+        <img class="thumb" src="{{ product.gallery.first.image.url }}" alt="{{ product.name }}" loading="lazy" decoding="async">
+      {% else %}
+        <div class="thumb"></div>
+      {% endif %}
+      {% for extra_image in product.gallery.all %}
+        {% if forloop.first %}
+          <img class="thumb secondary" src="{{ extra_image.image.url }}" alt="{{ product.name }}" loading="lazy" decoding="async">
+        {% endif %}
+      {% endfor %}
+      <span class="preview-badge">&#9654; Preview</span>
+    </div>
+  </a>
+
+  <div class="body">
+    <div class="row-top">
+      <div class="vendor-badge">
+        {% if product.vendor.settings.vendor_logo %}
+          <img src="{{ product.vendor.settings.vendor_logo.url }}" alt="{{ product.vendor.name }}" loading="lazy" decoding="async">
+        {% else %}
+          <span>{{ product.vendor.name|slice:":1" }}</span>
+        {% endif %}
+      </div>
+      <form method="post" action="{% url 'marketapp:wishlist-toggle' product.id|encid %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="wish-btn" aria-label="wishlist">
+          {% if product.id in wishlisted_ids %}♥{% else %}♡{% endif %}
+        </button>
+      </form>
+    </div>
+
+    <div class="name"><a href="{% url 'marketapp:product-detail' product.id|encid %}">{{ product.name }}</a></div>
+    <div class="vendor">{{ product.vendor.name }}{% if product.category_ref %} · {{ product.category_ref.name }}{% elif product.category %} · {{ product.category }}{% endif %}</div>
+    <div class="digital-flag {% if not product.is_digital %}off{% endif %}">Digital download</div>
+    <div class="rating">
+      <span>★ {{ product.avg_rating|default:0|floatformat:1 }}</span>
+      <small>({{ product.reviews_count|default:0 }})</small>
+    </div>
+    <div style="font-size:.78rem;color:#617570;margin-bottom:6px;">
+      Sold: {{ product.sold_count|default:0 }} · {{ product.viewing_count|default:3 }} viewing now
+    </div>
+    <div class="price">
+      {{ product.display_price|default:product.price|money:product.vendor }}
+      {% if product.has_discount %}
+      <small style="display:block;color:#a15b1b;text-decoration:line-through;">{{ product.original_price|money:product.vendor }}</small>
+      {% endif %}
+    </div>
+
+    <div class="action-row">
+      <button type="button" class="link-btn quick-view-btn">Quick View</button>
+      <a class="link-btn" href="{% url 'marketapp:home' %}?vendor={{ product.vendor.id|encid }}">Visit Store</a>
+    </div>
+
+    <form method="post" action="{% url 'marketapp:cart-add' product.id|encid %}" style="margin-top:8px;">
+      {% csrf_token %}
+      <input type="number" name="quantity" min="1" max="99" value="1" style="width:70px;border:1px solid #d2dfdb;border-radius:8px;padding:6px 8px;margin-bottom:6px;">
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <button class="btn" type="submit">&#128717; Add to Bag</button>
+    </form>
+  </div>
+</article>
+{% endfor %}

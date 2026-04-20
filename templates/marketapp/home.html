@@ -1,0 +1,868 @@
+{% extends "base_market.html" %}
+{% load secure_ids money_tags %}
+
+{% block title %}SwapMall Market{% endblock %}
+
+{% block page_css %}
+:root {
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --shadow-soft: 0 10px 24px rgba(17, 31, 27, .10);
+}
+body {
+  font-family: "Poppins", "Avenir Next", "Trebuchet MS", sans-serif;
+  background:
+    radial-gradient(500px 240px at 10% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent),
+    radial-gradient(520px 260px at 90% 0%, color-mix(in srgb, var(--primary) 20%, transparent), transparent),
+    var(--bg);
+}
+.top {
+  background: color-mix(in srgb, var(--primary) 88%, #000);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255,255,255,.18);
+}
+.top a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 75%, #fff);
+  outline-offset: 2px;
+}
+.vendor-select {
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  padding: 8px;
+  min-width: 170px;
+}
+.vendor-select option { color: #1d2523; }
+.cart-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.14);
+  font-weight: 700;
+}
+.trolley-icon {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  color: color-mix(in srgb, var(--secondary) 70%, var(--primary));
+}
+.cart-count {
+  display: inline-block;
+  min-width: 20px;
+  text-align: center;
+  border-radius: 999px;
+  padding: 2px 6px;
+  background: var(--accent);
+  color: #1d2523;
+  font-size: .78rem;
+}
+.wrap { max-width: 1160px; margin: 0 auto; padding: var(--space-2); }
+.hero {
+  position: relative;
+  border: 1px solid #e4ebe8;
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  margin-bottom: var(--space-2);
+  background: linear-gradient(128deg, color-mix(in srgb, var(--primary) 17%, #fff), color-mix(in srgb, var(--accent) 20%, #fff));
+  overflow: hidden;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  right: -70px;
+  top: -90px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 26%, transparent);
+}
+.hero-title { font-size: clamp(1.2rem, 1.8vw, 2rem); font-weight: 700; margin: 0; }
+.hero-sub { margin: 8px 0 0; color: #304a43; max-width: 620px; }
+.hero-dots { display: flex; gap: 7px; margin-top: 14px; }
+.hero-dot { width: 8px; height: 8px; border-radius: 999px; border: 0; background: rgba(14, 27, 24, .22); }
+.hero-dot.active { background: var(--primary); }
+.segment-nav {
+  position: sticky;
+  top: 56px;
+  z-index: 11;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid #dde6e2;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, #fff 90%, var(--bg));
+  box-shadow: 0 6px 16px rgba(16, 34, 29, .06);
+}
+.segment-btn {
+  border: 1px solid #d5e0dc;
+  background: #fff;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: .88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.segment-btn.active {
+  border-color: color-mix(in srgb, var(--primary) 60%, #fff);
+  background: color-mix(in srgb, var(--primary) 16%, #fff);
+  color: color-mix(in srgb, var(--primary) 82%, #000);
+}
+.trust-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.trust-item {
+  border: 1px solid #e3ebe8;
+  border-radius: var(--radius-sm);
+  background: #fff;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .9rem;
+}
+.filter-wrap {
+  border: 1px solid #e4ebe8;
+  border-radius: var(--radius-md);
+  padding: 10px;
+  margin-bottom: 12px;
+  background: color-mix(in srgb, #fff 93%, var(--bg));
+}
+.controls {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr auto;
+  gap: 8px;
+}
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.chip {
+  border: 1px solid #d2dfdb;
+  border-radius: 999px;
+  font-size: .82rem;
+  padding: 6px 10px;
+  background: #fff;
+}
+.chip-btn {
+  border: 0;
+  background: transparent;
+  color: #7a2e2a;
+  margin-left: 6px;
+  cursor: pointer;
+}
+.smart-chips { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+.smart-chip {
+  border: 1px dashed #bdd2cc;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, #fff);
+  padding: 6px 10px;
+  font-size: .8rem;
+  cursor: pointer;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.card {
+  background: var(--card);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid #e4ebe8;
+  box-shadow: var(--shadow-soft);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.card:hover { transform: translateY(-3px); box-shadow: 0 14px 26px rgba(16,30,26,.14); }
+.thumb-link { display:block; overflow:hidden; position: relative; }
+.thumb-stack { position: relative; }
+.thumb {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  background: #dfe7e4;
+  display: block;
+  transition: transform .35s ease;
+}
+.thumb.secondary {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity .24s ease, transform .35s ease;
+}
+.card:hover .thumb { transform: scale(1.05); }
+.card:hover .thumb.secondary { opacity: 1; }
+.preview-badge {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 2;
+  font-size: .72rem;
+  color: #fff;
+  background: rgba(0,0,0,.58);
+  border-radius: 999px;
+  padding: 4px 8px;
+}
+.body { padding: 10px; }
+.row-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.vendor-badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid #cddad6;
+  display:grid;
+  place-items:center;
+  background:#fff;
+  font-size:.78rem;
+  color:#37564c;
+}
+.vendor-badge img { width:100%; height:100%; object-fit:cover; }
+.wish-btn {
+  border: 1px solid #dfcbc9;
+  background: #fff;
+  color: #b42318;
+  border-radius: 999px;
+  width: 30px;
+  height: 30px;
+  font-size: 1rem;
+  transition: transform .12s ease;
+}
+.wish-btn:hover { transform: scale(1.08); }
+.name { font-weight: 700; margin-bottom: 4px; min-height: 38px; line-height: 1.2; }
+.name a { color: inherit; text-decoration:none; }
+.vendor { color: var(--muted); font-size: 0.86rem; margin-bottom: 6px; }
+.digital-flag {
+  font-size: .82rem;
+  color: #0b7a45;
+  min-height: 18px;
+  margin-bottom: 4px;
+}
+.digital-flag.off { visibility: hidden; }
+.rating { font-size: .84rem; color: #9c6f00; margin-bottom: 4px; }
+.rating small { color: var(--muted); }
+.price { color: var(--primary); font-weight: 800; min-height: 44px; }
+.action-row { display:flex; justify-content:space-between; gap:8px; margin-top:8px; }
+.link-btn {
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  text-decoration: underline;
+  font-size: .85rem;
+  padding: 0;
+  cursor: pointer;
+}
+.btn {
+  display: inline-block;
+  width: 100%;
+  background: var(--accent);
+  color: #1d2523;
+  text-decoration: none;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 9px 12px;
+  border: 0;
+}
+.section-card {
+  background: var(--card);
+  border: 1px solid #e4ebe8;
+  border-radius: var(--radius-md);
+  padding: 10px;
+  margin-top: 14px;
+}
+.scroller { display:grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap:10px; }
+.small-card { border:1px solid #e4ebe8; border-radius:12px; overflow:hidden; background:#fff; text-decoration:none; color:inherit; }
+.small-card img { width:100%; aspect-ratio:1/1; object-fit:cover; background:#dfe7e4; }
+.small-card .txt { padding:8px; font-size:.85rem; }
+.spotlight {
+  margin-top: 12px;
+  border: 1px solid #dde6e2;
+  border-radius: var(--radius-md);
+  background: #fff;
+  padding: 10px;
+}
+.spotlight-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(260px, 320px);
+  gap: 10px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+}
+.spotlight-card {
+  scroll-snap-align: start;
+  border: 1px solid #e4ebe8;
+  border-radius: 12px;
+  padding: 10px;
+}
+.spotlight-head { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.spotlight-logo { width:36px; height:36px; border-radius:50%; object-fit:cover; border:1px solid #d2dfdb; background:#f3f7f5; }
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+}
+.modal.show { display: flex; }
+.modal-card {
+  width: min(94vw, 520px);
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.modal-card img { width:100%; aspect-ratio:1/1; object-fit:cover; background:#dfe7e4; }
+.modal-body { padding:12px; }
+.skeletons { display:none; grid-template-columns: repeat(4,minmax(0,1fr)); gap:12px; margin-top:10px; }
+.skeleton {
+  height: 260px;
+  border-radius: 14px;
+  background: linear-gradient(100deg, #edf3f1 20%, #f8fbfa 50%, #edf3f1 80%);
+  background-size: 200% 100%;
+  animation: shimmer 1.1s infinite linear;
+}
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.float-cart {
+  position: fixed;
+  right: 12px;
+  bottom: 64px;
+  z-index: 25;
+  background: var(--primary);
+  color:#fff;
+  border-radius: 999px;
+  padding: 10px 14px;
+  text-decoration:none;
+  box-shadow: 0 10px 18px rgba(0,0,0,.2);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+.mobile-actions {
+  display:none;
+  position: sticky;
+  bottom: 56px;
+  z-index: 12;
+  background: rgba(255,255,255,.62);
+  backdrop-filter: blur(8px);
+  border:1px solid #dde6e2;
+  border-radius: 12px;
+  padding:8px;
+  margin: 10px 0;
+  grid-template-columns: repeat(3,1fr);
+  gap:8px;
+}
+.mobile-actions button { border:1px solid #d2dfdb; background:#fff; border-radius:9px; padding:8px; }
+.big-footer {
+  margin-top: 20px;
+  border: 1px solid #d8e4df;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--primary) 10%, #fff), #fff);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 12px;
+}
+.footer-grid input {
+  width: 100%;
+  border: 1px solid #cfdcd7;
+  border-radius: 10px;
+  padding: 10px;
+}
+.footer-grid .btn { width: auto; margin-top: 8px; }
+.social-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--primary) 35%, #cfdcd7);
+  background: color-mix(in srgb, #fff 90%, var(--primary));
+  color: var(--primary);
+  text-decoration: none;
+  transition: transform .14s ease, background .14s ease, border-color .14s ease;
+}
+.social-link:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--secondary) 60%, var(--primary));
+  background: color-mix(in srgb, var(--secondary) 15%, #fff);
+}
+.social-link svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+@media (max-width: 980px) {
+  .controls { grid-template-columns: 1fr 1fr 1fr; }
+  .grid, .scroller, .skeletons { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .trust-strip { grid-template-columns: 1fr; }
+}
+@media (max-width: 680px) {
+  .controls { grid-template-columns: 1fr 1fr; }
+  .grid, .scroller, .skeletons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mobile-actions { display:grid; }
+  .footer-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 440px) {
+  .grid, .scroller, .skeletons { grid-template-columns: 1fr; }
+}
+@media (prefers-color-scheme: dark) {
+  body {
+    background:
+      radial-gradient(500px 220px at 10% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent),
+      radial-gradient(520px 260px at 90% 0%, color-mix(in srgb, var(--primary) 16%, transparent), transparent),
+      color-mix(in srgb, var(--bg) 64%, #0f1614);
+  }
+  .hero, .filter-wrap, .segment-nav, .card, .section-card, .spotlight, .spotlight-card, .trust-item, .small-card, .big-footer {
+    background: color-mix(in srgb, #101a18 82%, var(--bg));
+    border-color: #2a3a35;
+    color: #e4ece8;
+  }
+  .vendor, .hero-sub { color: #b9cbc4; }
+  .segment-btn, .mobile-actions button, .smart-chip, .chip { background: #172420; color: #dfebe6; border-color: #325046; }
+}
+{% endblock %}
+
+{% block topbar %}
+<strong>SwapMall Market{% if selected_vendor %} · {{ selected_vendor.name }}{% endif %}</strong>
+<div style="display:flex;align-items:center;gap:8px;">
+  <form method="post" action="" id="topVendorForm">
+    {% csrf_token %}
+    <input type="hidden" name="limit" value="{{ loaded_count|default:100|encid }}">
+    {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+    {% if sort_key %}<input type="hidden" name="sort" value="{{ sort_key }}">{% endif %}
+    {% if segment %}<input type="hidden" name="segment" value="{{ segment }}">{% endif %}
+    {% if digital_only %}<input type="hidden" name="digital_only" value="1">{% endif %}
+    <select class="vendor-select" name="vendor" onchange="this.form.submit()">
+      <option value="">All Vendors</option>
+      {% for vendor in vendors %}
+      <option value="{{ vendor.id|encid }}" {% if selected_vendor and vendor.id == selected_vendor.id %}selected{% endif %}>{{ vendor.name }}</option>
+      {% endfor %}
+    </select>
+  </form>
+  <a class="cart-link" href="{% url 'marketapp:cart' %}" aria-label="Open cart bag">
+    <svg class="trolley-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 5h15l-1.5 8.5a2 2 0 0 1-2 1.5H10a2 2 0 0 1-2-1.6L6.2 4H3V2h4a1 1 0 0 1 1 .8L8.3 4H21a1 1 0 0 1 1 1.2l-1.7 9.6A4 4 0 0 1 16.4 18H10a4 4 0 0 1-3.9-3.2L4.8 6H2V4h4a1 1 0 0 1 1 .8L7 5zm3 15a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm8 0a2 2 0 1 0 .001 4A2 2 0 0 0 18 20z"/></svg>
+    <span>Bag</span>
+    <span class="cart-count">{{ cart_count }}</span>
+    {% if mixed_cart_currency %} · Mixed{% else %} · {{ cart_total|money:cart_total_vendor }}{% endif %}
+  </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<main class="wrap">
+  <section class="hero" id="heroRotator">
+    <h1 class="hero-title" id="heroTitle">{{ promo_title }}</h1>
+    <p class="hero-sub" id="heroSubtitle">{{ promo_subtitle }}</p>
+    <div class="hero-dots">
+      {% for slide in hero_slides %}
+      <button type="button" class="hero-dot {% if forloop.first %}active{% endif %}" data-slide="{{ forloop.counter0 }}" aria-label="Slide {{ forloop.counter }}"></button>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="trust-strip" aria-label="Trust features">
+    <div class="trust-item"><span>&#128274;</span><strong>Secure Checkout</strong></div>
+    <div class="trust-item"><span>&#9889;</span><strong>Fast Support</strong></div>
+    <div class="trust-item"><span>&#9989;</span><strong>Verified Vendors</strong></div>
+  </section>
+
+  <form method="post" action="" id="segmentForm" class="segment-nav">
+    {% csrf_token %}
+    {% if selected_vendor %}<input type="hidden" name="vendor" value="{{ selected_vendor.id|encid }}">{% endif %}
+    <input type="hidden" name="limit" value="{{ loaded_count|default:100|encid }}">
+    <input type="hidden" name="q" value="{{ search_query }}">
+    <input type="hidden" name="category" value="{% if selected_category_id %}{{ selected_category_id|encid }}{% endif %}">
+    <input type="hidden" name="sort" value="{{ sort_key }}">
+    <input type="hidden" name="min_price" value="{{ min_price|default:'' }}">
+    <input type="hidden" name="max_price" value="{{ max_price|default:'' }}">
+    <button class="segment-btn {% if segment == 'all' %}active{% endif %}" type="submit" name="segment" value="all">All</button>
+    <button class="segment-btn {% if segment == 'new' %}active{% endif %}" type="submit" name="segment" value="new">New</button>
+    <button class="segment-btn {% if segment == 'trending' %}active{% endif %}" type="submit" name="segment" value="trending">Trending</button>
+    <button class="segment-btn {% if segment == 'digital' %}active{% endif %}" type="submit" name="segment" value="digital">Digital</button>
+    <button class="segment-btn {% if segment == 'deals' %}active{% endif %}" type="submit" name="segment" value="deals">Deals</button>
+  </form>
+
+  <section class="filter-wrap" id="filterPanel">
+    <form method="post" action="" id="filterForm">
+      {% csrf_token %}
+      {% if selected_vendor %}<input type="hidden" name="vendor" value="{{ selected_vendor.id|encid }}">{% endif %}
+      <input type="hidden" name="limit" value="{{ loaded_count|default:100|encid }}">
+      <input type="hidden" name="segment" value="{{ segment }}">
+      <div class="controls">
+        <input class="filter-input" type="text" name="q" value="{{ search_query }}" placeholder="Search vendor, product, category">
+        <select name="category">
+          <option value="">All categories</option>
+          {% for c in categories %}
+          <option value="{{ c.id|encid }}" {% if selected_category_id and c.id == selected_category_id %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+        <select name="sort">
+          <option value="newest" {% if sort_key == 'newest' %}selected{% endif %}>Newest</option>
+          <option value="price_asc" {% if sort_key == 'price_asc' %}selected{% endif %}>Price low-high</option>
+          <option value="price_desc" {% if sort_key == 'price_desc' %}selected{% endif %}>Price high-low</option>
+          <option value="best_selling" {% if sort_key == 'best_selling' %}selected{% endif %}>Best selling</option>
+        </select>
+        <input type="number" step="0.01" name="min_price" placeholder="Min price" value="{{ min_price|default:'' }}">
+        <input type="number" step="0.01" name="max_price" placeholder="Max price" value="{{ max_price|default:'' }}">
+        <button class="btn" type="submit">Apply</button>
+      </div>
+      <div class="smart-chips">
+        <button class="smart-chip" type="button" data-chip="under20">Under $20</button>
+        <button class="smart-chip" type="button" data-chip="topRated">Top rated</button>
+        <button class="smart-chip" type="button" data-chip="digital">Digital only</button>
+        <button class="smart-chip" type="button" data-chip="deals">Deals</button>
+      </div>
+      <input type="hidden" name="digital_only" id="digitalOnlyInput" value="{% if digital_only %}1{% endif %}">
+    </form>
+    {% if active_filters %}
+    <div class="chips">
+      {% for chip in active_filters %}
+      <span class="chip">{{ chip.label }}<button type="button" class="chip-btn" data-clear="{{ chip.key }}">x</button></span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </section>
+
+  <div class="mobile-actions">
+    <button type="button" onclick="document.getElementById('filterPanel').scrollIntoView({behavior:'smooth'})">Filter</button>
+    <button type="button" onclick="document.querySelector('select[name=sort]').focus()">Sort</button>
+    <button type="button" onclick="location.href='{% url 'marketapp:cart' %}'">🛒 Cart</button>
+  </div>
+
+  {% if vendor_spotlights %}
+  <section class="spotlight">
+    <h3 style="margin:0 0 8px;">Vendor Spotlight</h3>
+    <div class="spotlight-track">
+      {% for item in vendor_spotlights %}
+      <article class="spotlight-card">
+        <div class="spotlight-head">
+          {% if item.logo_url %}<img class="spotlight-logo" src="{{ item.logo_url }}" alt="{{ item.vendor.name }}">{% else %}<div class="spotlight-logo"></div>{% endif %}
+          <strong>{{ item.vendor.name }}</strong>
+        </div>
+        {% for p in item.top_products %}
+          <a href="{% url 'marketapp:product-detail' p.id|encid %}" style="display:flex;justify-content:space-between;gap:8px;text-decoration:none;color:inherit;padding:5px 0;">
+            <span>{{ p.name|truncatechars:26 }}</span><strong>{{ p.display_price|default:p.price|money:p.vendor }}</strong>
+          </a>
+        {% empty %}
+          <small>No products yet.</small>
+        {% endfor %}
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <p class="meta">Showing <span id="loadedCount">{{ loaded_count }}</span> items out of {{ total_count }} total.</p>
+  <section class="grid" id="productGrid">
+    {% include "marketapp/_product_cards.html" %}
+  </section>
+  {% if not products %}
+  <section class="section-card" style="text-align:center; padding:24px;">
+    <div style="font-size:2rem;">&#128269;</div>
+    <h3 style="margin:8px 0;">No products found</h3>
+    <p>Try clearing filters or changing search terms.</p>
+  </section>
+  {% endif %}
+  <section class="skeletons" id="skeletons">
+    <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+  </section>
+
+  {% if recently_viewed %}
+  <section class="section-card">
+    <h3>Recently viewed</h3>
+    <div class="scroller">
+      {% for p in recently_viewed %}
+      <a class="small-card" href="{% url 'marketapp:product-detail' p.id|encid %}">
+        {% if p.main_thumbnail %}<img src="{{ p.main_thumbnail.url }}" alt="{{ p.name }}" loading="lazy" decoding="async">{% elif p.gallery.first %}<img src="{{ p.gallery.first.image.url }}" alt="{{ p.name }}" loading="lazy" decoding="async">{% endif %}
+        <div class="txt"><strong>{{ p.name }}</strong><div>{{ p.display_price|default:p.price|money:p.vendor }}</div></div>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if may_like %}
+  <section class="section-card">
+    <h3>Because you viewed</h3>
+    <div class="scroller">
+      {% for p in may_like %}
+      <a class="small-card" href="{% url 'marketapp:product-detail' p.id|encid %}">
+        {% if p.main_thumbnail %}<img src="{{ p.main_thumbnail.url }}" alt="{{ p.name }}" loading="lazy" decoding="async">{% elif p.gallery.first %}<img src="{{ p.gallery.first.image.url }}" alt="{{ p.name }}" loading="lazy" decoding="async">{% endif %}
+        <div class="txt"><strong>{{ p.name }}</strong><div>{{ p.display_price|default:p.price|money:p.vendor }}</div></div>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if popular_products %}
+  <section class="section-card">
+    <h3>Popular now</h3>
+    <div class="scroller">
+      {% for p in popular_products %}
+      <a class="small-card" href="{% url 'marketapp:product-detail' p.id|encid %}">
+        {% if p.main_thumbnail %}<img src="{{ p.main_thumbnail.url }}" alt="{{ p.name }}" loading="lazy" decoding="async">{% elif p.gallery.first %}<img src="{{ p.gallery.first.image.url }}" alt="{{ p.name }}" loading="lazy" decoding="async">{% endif %}
+        <div class="txt"><strong>{{ p.name }}</strong><div>{{ p.display_price|default:p.price|money:p.vendor }}</div></div>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="big-footer" aria-label="Marketplace footer section">
+    <div class="footer-grid">
+      <div>
+        <h3 style="margin:0 0 6px;">Stay in the loop</h3>
+        <p style="margin:0;">Get weekly drops, deal alerts, and curated picks from trusted vendors.</p>
+        <input type="email" placeholder="Your email address">
+        <button class="btn" type="button">Subscribe</button>
+      </div>
+      <div>
+        <h4 style="margin:0 0 8px;">Quick Links</h4>
+        <div><a href="{% url 'marketapp:home' %}">Home</a></div>
+        <div><a href="{% url 'marketapp:cart' %}">Cart</a></div>
+        <div><a href="{% url 'marketapp:checkout' %}">Checkout</a></div>
+      </div>
+      <div>
+        <h4 style="margin:0 0 8px;">Follow</h4>
+        <div class="social-links">
+          {% if social_links.instagram %}
+          <a class="social-link" href="{{ social_links.instagram }}" target="_blank" rel="noopener" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4c0 3.2-2.6 5.8-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8C2 4.6 4.6 2 7.8 2zm0 2A3.8 3.8 0 0 0 4 7.8v8.4A3.8 3.8 0 0 0 7.8 20h8.4a3.8 3.8 0 0 0 3.8-3.8V7.8A3.8 3.8 0 0 0 16.2 4H7.8zm9.15 1.5a1.05 1.05 0 1 1 0 2.1 1.05 1.05 0 0 1 0-2.1zM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
+          </a>{% endif %}
+          {% if social_links.facebook %}
+          <a class="social-link" href="{{ social_links.facebook }}" target="_blank" rel="noopener" aria-label="Facebook">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 22v-8h2.7l.4-3h-3.1V9.1c0-.9.3-1.5 1.6-1.5h1.7V4.9c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.4V11H8v3h2.1v8h3.4z"/></svg>
+          </a>{% endif %}
+          {% if social_links.x %}
+          <a class="social-link" href="{{ social_links.x }}" target="_blank" rel="noopener" aria-label="X">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.9 2H22l-6.8 7.8L23 22h-6.2l-4.9-6.5L6.2 22H3l7.3-8.3L1 2h6.3l4.4 5.9L18.9 2zm-1.1 18h1.7L6.3 3.9H4.5L17.8 20z"/></svg>
+          </a>{% endif %}
+          {% if social_links.tiktok %}
+          <a class="social-link" href="{{ social_links.tiktok }}" target="_blank" rel="noopener" aria-label="TikTok">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h3.1c.2 1.8 1.3 3.3 2.9 4v3.1c-1.3 0-2.6-.4-3.7-1.1v6.2a5.2 5.2 0 1 1-5.2-5.2c.4 0 .8 0 1.2.1v3.2a2 2 0 1 0 1.7 2V3z"/></svg>
+          </a>{% endif %}
+          {% if social_links.youtube %}
+          <a class="social-link" href="{{ social_links.youtube }}" target="_blank" rel="noopener" aria-label="YouTube">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 8.3a3 3 0 0 0-2.1-2.1C19 5.7 12 5.7 12 5.7s-7 0-8.9.5A3 3 0 0 0 1 8.3 31 31 0 0 0 .5 12 31 31 0 0 0 1 15.7a3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-3.7 31 31 0 0 0-.5-3.7zM10 15V9l5.2 3L10 15z"/></svg>
+          </a>{% endif %}
+          {% if not social_links.instagram and not social_links.facebook and not social_links.x and not social_links.tiktok and not social_links.youtube %}
+            <span style="font-size:.9rem;">No social links set</span>
+          {% endif %}
+        </div>
+        <div style="margin-top:8px;font-size:.88rem;">Support: support@swapmall.com</div>
+      </div>
+    </div>
+  </section>
+
+  <a class="float-cart" href="{% url 'marketapp:cart' %}">
+    <svg class="trolley-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 5h15l-1.5 8.5a2 2 0 0 1-2 1.5H10a2 2 0 0 1-2-1.6L6.2 4H3V2h4a1 1 0 0 1 1 .8L8.3 4H21a1 1 0 0 1 1 1.2l-1.7 9.6A4 4 0 0 1 16.4 18H10a4 4 0 0 1-3.9-3.2L4.8 6H2V4h4a1 1 0 0 1 1 .8L7 5zm3 15a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm8 0a2 2 0 1 0 .001 4A2 2 0 0 0 18 20z"/></svg>
+    <span>Bag</span>
+    <span class="cart-count">{{ cart_count }}</span>
+    {% if mixed_cart_currency %} · Mixed{% else %} · {{ cart_total|money:cart_total_vendor }}{% endif %}
+  </a>
+
+  <div class="modal" id="quickModal" aria-hidden="true">
+    <div class="modal-card">
+      <img id="qmImage" alt="product preview">
+      <div class="modal-body">
+        <h3 id="qmName" style="margin:0 0 6px;"></h3>
+        <div id="qmVendor" style="color:var(--muted);margin-bottom:6px;"></div>
+        <div id="qmPrice" style="color:var(--primary);font-weight:800;margin-bottom:8px;"></div>
+        <p id="qmDesc" style="margin:0 0 10px;"></p>
+        <form id="quickAddForm" method="post" action="">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <input type="number" name="quantity" min="1" max="99" value="1" style="width:96px;border:1px solid #d2dfdb;border-radius:8px;padding:8px;margin-bottom:8px;">
+          <button class="btn" type="submit">&#128717; Quick Add</button>
+        </form>
+        <a id="qmOpen" class="btn" href="#" style="margin-top:8px;">Open Details</a>
+      </div>
+    </div>
+  </div>
+</main>
+{{ hero_slides|json_script:"heroSlidesData" }}
+{% endblock %}
+
+{% block page_js %}
+<script>
+(function () {
+  const grid = document.getElementById('productGrid');
+  const skeletons = document.getElementById('skeletons');
+  const loadedCount = document.getElementById('loadedCount');
+  const modal = document.getElementById('quickModal');
+  const qmImage = document.getElementById('qmImage');
+  const qmName = document.getElementById('qmName');
+  const qmVendor = document.getElementById('qmVendor');
+  const qmPrice = document.getElementById('qmPrice');
+  const qmDesc = document.getElementById('qmDesc');
+  const qmOpen = document.getElementById('qmOpen');
+  const quickAddForm = document.getElementById('quickAddForm');
+
+  let hasNext = {{ has_next|yesno:'true,false' }};
+  let nextLimit = '{{ next_limit|encid }}';
+  let loading = false;
+
+  const heroSlidesNode = document.getElementById('heroSlidesData');
+  let heroSlides = [];
+  if (heroSlidesNode) {
+    try {
+      heroSlides = JSON.parse(heroSlidesNode.textContent || '[]');
+    } catch (e) {
+      heroSlides = [];
+    }
+  }
+  if (!heroSlides.length) {
+    heroSlides = [{ title: '{{ promo_title|escapejs }}', subtitle: '{{ promo_subtitle|escapejs }}' }];
+  }
+  const heroTitle = document.getElementById('heroTitle');
+  const heroSubtitle = document.getElementById('heroSubtitle');
+  const dots = Array.from(document.querySelectorAll('.hero-dot'));
+  let slideIndex = 0;
+
+  function setSlide(index) {
+    slideIndex = index % heroSlides.length;
+    const slide = heroSlides[slideIndex];
+    if (heroTitle) heroTitle.textContent = slide.title || '';
+    if (heroSubtitle) heroSubtitle.textContent = slide.subtitle || '';
+    dots.forEach((d, i) => d.classList.toggle('active', i === slideIndex));
+  }
+  dots.forEach((dot) => dot.addEventListener('click', () => setSlide(Number(dot.dataset.slide || 0))));
+  if (heroSlides.length > 1) {
+    setInterval(() => setSlide(slideIndex + 1), 5500);
+  }
+
+  async function fetchMore() {
+    if (!hasNext || loading || !nextLimit) return;
+    loading = true;
+    skeletons.style.display = 'grid';
+    try {
+      const url = new URL('{% url "marketapp:product-grid" %}', window.location.origin);
+      const current = new URL(window.location.href);
+      current.searchParams.forEach((v, k) => url.searchParams.set(k, v));
+      url.searchParams.set('limit', nextLimit);
+      const res = await fetch(url.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+      if (!res.ok) throw new Error('Failed to fetch products');
+      const data = await res.json();
+      if (data.html) {
+        grid.insertAdjacentHTML('beforeend', data.html);
+        bindQuickView();
+        loadedCount.textContent = String(grid.querySelectorAll('.product-card').length);
+      }
+      hasNext = Boolean(data.has_next);
+      nextLimit = data.next_limit || '';
+    } catch (e) {
+      console.error(e);
+    } finally {
+      skeletons.style.display = 'none';
+      loading = false;
+    }
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) fetchMore();
+    });
+  }, { rootMargin: '320px' });
+  observer.observe(document.querySelector('.float-cart'));
+
+  function openModal(card) {
+    qmImage.src = card.dataset.image || '';
+    qmName.textContent = card.dataset.name || '';
+    qmVendor.textContent = card.dataset.vendor || '';
+    qmPrice.textContent = card.dataset.price || '';
+    qmDesc.textContent = card.dataset.desc || '';
+    qmOpen.href = card.dataset.url || '#';
+    if (quickAddForm) quickAddForm.action = card.dataset.cartUrl || '#';
+    modal.classList.add('show');
+    modal.setAttribute('aria-hidden', 'false');
+  }
+
+  function bindQuickView() {
+    document.querySelectorAll('.quick-view-btn').forEach((btn) => {
+      if (btn.dataset.bound === '1') return;
+      btn.dataset.bound = '1';
+      btn.addEventListener('click', () => {
+        const card = btn.closest('.product-card');
+        if (!card) return;
+        openModal(card);
+      });
+    });
+  }
+  bindQuickView();
+
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal) {
+      modal.classList.remove('show');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+  });
+
+  document.querySelectorAll('.chip-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const key = btn.getAttribute('data-clear');
+      const form = document.getElementById('filterForm');
+      if (!form || !key) return;
+      if (key === 'q') form.querySelector('[name="q"]').value = '';
+      if (key === 'category') form.querySelector('[name="category"]').value = '';
+      if (key === 'min_price') form.querySelector('[name="min_price"]').value = '';
+      if (key === 'max_price') form.querySelector('[name="max_price"]').value = '';
+      if (key === 'sort') form.querySelector('[name="sort"]').value = 'newest';
+      if (key === 'digital_only') document.getElementById('digitalOnlyInput').value = '';
+      if (key === 'segment') {
+        const segmentInput = form.querySelector('[name="segment"]');
+        if (segmentInput) segmentInput.value = 'all';
+      }
+      form.submit();
+    });
+  });
+
+  document.querySelectorAll('.smart-chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const type = chip.getAttribute('data-chip');
+      const form = document.getElementById('filterForm');
+      if (!form) return;
+      if (type === 'under20') {
+        form.querySelector('[name="max_price"]').value = '20';
+      } else if (type === 'digital') {
+        document.getElementById('digitalOnlyInput').value = '1';
+      } else if (type === 'deals') {
+        form.querySelector('[name="segment"]').value = 'deals';
+      } else if (type === 'topRated') {
+        form.querySelector('[name="sort"]').value = 'best_selling';
+      }
+      form.submit();
+    });
+  });
+})();
+</script>
+{% endblock %}

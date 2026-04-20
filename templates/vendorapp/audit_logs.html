@@ -1,0 +1,24 @@
+{% extends "base_vendor.html" %}
+{% block title %}Audit Logs{% endblock %}
+{% block content %}
+<section class="card">
+  <table>
+    <thead><tr><th>Date</th><th>User</th><th>Vendor</th><th>Action</th><th>Target</th><th>Details</th><th>IP</th></tr></thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td>{{ log.created_at }}</td>
+        <td>{% if log.user %}{{ log.user.username }}{% else %}-{% endif %}</td>
+        <td>{% if log.vendor %}{{ log.vendor.name }}{% else %}-{% endif %}</td>
+        <td>{{ log.action }}</td>
+        <td>{{ log.target_model }} {{ log.target_id }}</td>
+        <td>{{ log.details|default:'-' }}</td>
+        <td>{{ log.ip_address|default:'-' }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7">No logs found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

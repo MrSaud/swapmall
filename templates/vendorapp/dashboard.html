@@ -1,0 +1,44 @@
+{% extends "base_vendor.html" %}
+{% load money_tags secure_ids %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+{% if package_alarm %}
+<section class="card" style="border-left:4px solid #f79009;background:#fffaeb;">
+  <strong style="color:#b54708;">Alarm:</strong>
+  {% if package_alarm.is_today %}
+    Package for {{ package_alarm.vendor_name }} expires today ({{ package_alarm.ends_on }}).
+  {% else %}
+    Package for {{ package_alarm.vendor_name }} expires in {{ package_alarm.days_left }} day{{ package_alarm.days_left|pluralize }} ({{ package_alarm.ends_on }}).
+  {% endif %}
+</section>
+{% endif %}
+<div class="grid">
+  <section class="card metric"><strong>Products</strong><div>{{ product_count }}</div></section>
+  <section class="card metric"><strong>Orders</strong><div>{{ order_count }}</div></section>
+  <section class="card metric"><strong>Staff Users</strong><div>{{ staff_count }}</div></section>
+  <section class="card metric"><strong>Total Revenue</strong><div>{{ total_revenue|money:selected_vendor }}</div></section>
+  <section class="card metric"><strong>Low Stock (<=5)</strong><div>{{ low_stock_count }}</div></section>
+</div>
+<section class="card">
+  <a class="btn" href="{% url 'vendorapp:product-export' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Export Products CSV</a>
+  <a class="btn alt" href="{% url 'vendorapp:order-export' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Export Orders CSV</a>
+</section>
+<section class="card">
+  <h3>Recent Orders</h3>
+  <table>
+    <thead><tr><th>Order</th><th>Vendor</th><th>Status</th><th>Total</th></tr></thead>
+    <tbody>
+      {% for order in recent_orders %}
+      <tr>
+        <td>{{ order.order_number }}</td>
+        <td>{{ order.vendor.name }}</td>
+        <td>{{ order.get_status_display }}</td>
+        <td>{{ order.total_amount|money:order.vendor }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4">No orders yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

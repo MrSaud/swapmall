@@ -1,0 +1,53 @@
+{% extends "vendorapp/base.html" %}
+{% load money_tags %}
+{% block title %}Products{% endblock %}
+{% block content %}
+<section class="card">
+  <a class="btn" href="{% url 'vendorapp:product-create' %}{% if selected_vendor %}?vendor={{ selected_vendor.id }}{% endif %}">Create Product</a>
+</section>
+
+<section class="card">
+  <h3>Products</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Photo</th>
+        <th>Vendor</th>
+        <th>Name</th>
+        <th>SKU</th>
+        <th>Price</th>
+        <th>Stock</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+        <tr>
+          <td>
+            {% if product.main_thumbnail %}
+              <img src="{{ product.main_thumbnail.url }}" alt="{{ product.name }}" style="width:56px;height:56px;border-radius:10px;object-fit:cover;">
+            {% elif product.gallery.first %}
+              <img src="{{ product.gallery.first.image.url }}" alt="{{ product.name }}" style="width:56px;height:56px;border-radius:10px;object-fit:cover;">
+            {% else %}
+              <span style="font-size:0.82rem;opacity:.7;">No photo</span>
+            {% endif %}
+          </td>
+          <td>{{ product.vendor.name }}</td>
+          <td>{{ product.name }}</td>
+          <td>{{ product.sku }}</td>
+          <td>{{ product.price|money:product.vendor }}</td>
+          <td>{{ product.stock_quantity }}</td>
+          <td>{% if product.is_active %}Active{% else %}Inactive{% endif %}</td>
+          <td>
+            <a class="btn alt" href="{% url 'vendorapp:product-update' product.id %}">Edit</a>
+            <a class="btn warn" href="{% url 'vendorapp:product-delete' product.id %}">Delete</a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="8">No products found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

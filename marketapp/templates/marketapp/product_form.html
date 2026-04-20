@@ -1,0 +1,12 @@
+{% extends "vendorapp/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<section class="card">
+  <h3>{{ title }}</h3>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn">Save</button>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base_vendor.html" %}
+{% load secure_ids %}
+{% block title %}Saved Filters{% endblock %}
+{% block content %}
+<section class="card">
+  <a class="btn" href="{% url 'vendorapp:saved-filter-create' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Create Saved Filter</a>
+</section>
+<section class="card">
+  <table>
+    <thead><tr><th>Name</th><th>Page</th><th>Vendor</th><th>Query</th><th>Action</th></tr></thead>
+    <tbody>
+      {% for item in filters %}
+      <tr>
+        <td>{{ item.name }}</td>
+        <td>{{ item.page }}</td>
+        <td>{{ item.vendor.name }}</td>
+        <td><code>{{ item.query_string }}</code></td>
+        <td>
+          <a class="btn alt" href="{% url 'vendorapp:saved-filter-apply' item.pk|encid %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Apply</a>
+          <a class="btn" href="{% url 'vendorapp:saved-filter-delete' item.pk|encid %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Delete</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5">No saved filters.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

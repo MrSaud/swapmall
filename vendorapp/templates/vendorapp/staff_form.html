@@ -1,0 +1,12 @@
+{% extends "vendorapp/base.html" %}
+{% block title %}Add Staff User{% endblock %}
+{% block content %}
+<section class="card">
+  <h3>Create Vendor Staff User</h3>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn">Create Staff User</button>
+  </form>
+</section>
+{% endblock %}

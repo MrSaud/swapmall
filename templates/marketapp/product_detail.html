@@ -1,0 +1,157 @@
+{% extends "base_market.html" %}
+{% load secure_ids money_tags %}
+
+{% block title %}{{ product.name }} - SwapMall{% endblock %}
+
+{% block page_css %}
+.wrap { max-width: 980px; }
+.card {
+  background: var(--card);
+  border-radius: 14px;
+  border: 1px solid #e4ebe8;
+  box-shadow: 0 8px 14px rgba(20, 40, 35, 0.06);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.hero-wrap { width: 400px; height: 400px; max-width: 100%; margin: 0 auto; background: #dfe7e4; }
+.hero { width: 100%; height: 100%; object-fit: cover; display: block; }
+.body { padding: 14px; }
+.meta { color: var(--muted); margin-bottom: 8px; }
+.price { color: var(--primary); font-size: 1.2rem; font-weight: 800; margin: 8px 0 10px; }
+.badges { display:flex; gap:10px; margin-bottom:8px; font-size:.9rem; }
+.badges span { background:#fff8db; border:1px solid #f3de96; border-radius:999px; padding:4px 10px; }
+.btn { border:0; border-radius:10px; padding:10px 14px; font-weight:700; background: var(--accent); color:#1d2523; }
+.wish-btn { border:1px solid #dfcbc9; background:#fff; color:#b42318; border-radius:999px; padding:8px 12px; }
+.gallery { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.gallery img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 10px; border: 1px solid #e4ebe8; cursor: pointer; }
+.gallery img.active { border: 2px solid var(--primary); }
+.related { display:grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap:10px; padding:12px; }
+.mini { border:1px solid #e4ebe8; border-radius:12px; overflow:hidden; text-decoration:none; color:inherit; }
+.mini img { width:100%; aspect-ratio:1/1; object-fit:cover; }
+.mini div { padding:8px; }
+.review { border-top:1px solid #edf2f0; padding:10px 0; }
+.review small { color: var(--muted); }
+@media (max-width:760px) { .gallery { grid-template-columns: repeat(3, minmax(0,1fr)); } .related { grid-template-columns: repeat(2,minmax(0,1fr)); }}
+@media (max-width:440px) { .gallery { grid-template-columns: repeat(2, minmax(0,1fr)); } .related { grid-template-columns: 1fr; }}
+{% endblock %}
+
+{% block topbar %}
+<a href="{% url 'marketapp:home' %}">Back to Market</a>
+<a href="{% url 'marketapp:cart' %}">Cart ({{ cart_count }})</a>
+{% endblock %}
+
+{% block content %}
+<main class="wrap">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="card" style="padding:10px;">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <section class="card">
+    <div class="hero-wrap">
+      {% if product.main_thumbnail %}
+        <img id="main-preview" class="hero" src="{{ product.main_thumbnail.url }}" alt="{{ product.name }}">
+      {% elif product.gallery.first %}
+        <img id="main-preview" class="hero" src="{{ product.gallery.first.image.url }}" alt="{{ product.name }}">
+      {% else %}
+        <div id="main-preview" class="hero"></div>
+      {% endif %}
+    </div>
+
+    <div class="body">
+      <h1 style="margin:0 0 6px;">{{ product.name }}</h1>
+      <div class="meta">{{ product.vendor.name }}{% if product.category_ref %} · {{ product.category_ref.name }}{% elif product.category %} · {{ product.category }}{% endif %}</div>
+      <div class="badges">
+        <span>★ {{ avg_rating|floatformat:1 }} ({{ review_count }})</span>
+        {% if product.is_digital %}<span>Digital download</span>{% endif %}
+      </div>
+      <div class="price">
+        {{ product.display_price|default:product.price|money:product.vendor }}
+        {% if product.has_discount %}
+          <small style="display:block;color:#a15b1b;text-decoration:line-through;">{{ product.original_price|money:product.vendor }}</small>
+          {% if product.active_offer_name %}<small style="display:block;color:#0b7a45;">Offer: {{ product.active_offer_name }}</small>{% endif %}
+        {% endif %}
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <form method="post" action="{% url 'marketapp:cart-add' product.id|encid %}">
+          {% csrf_token %}
+          <input type="hidden" name="quantity" value="1">
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <button class="btn" type="submit">{% if product.is_digital %}Buy Digital{% else %}Add to cart{% endif %}</button>
+        </form>
+        <form method="post" action="{% url 'marketapp:wishlist-toggle' product.id|encid %}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <button class="wish-btn" type="submit">{% if is_wishlisted %}♥ Wishlisted{% else %}♡ Add Wishlist{% endif %}</button>
+        </form>
+      </div>
+
+      {% if product.description %}<p>{{ product.description }}</p>{% endif %}
+
+      {% if product.gallery.all %}
+      <div class="gallery">
+        {% if product.main_thumbnail %}
+          <img class="active" data-image-src="{{ product.main_thumbnail.url }}" src="{{ product.main_thumbnail.url }}" alt="{{ product.name }}">
+        {% endif %}
+        {% for image in product.gallery.all %}
+          <img {% if not product.main_thumbnail and forloop.first %}class="active"{% endif %} data-image-src="{{ image.image.url }}" src="{{ image.image.url }}" alt="{{ image.alt_text|default:product.name }}">
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="card" style="padding:12px;">
+    <h3 style="margin-top:0;">Reviews</h3>
+    <form method="post" style="border:1px solid #e4ebe8;border-radius:10px;padding:10px;margin-bottom:10px;">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button class="btn" type="submit">Submit review</button>
+    </form>
+    {% for review in reviews %}
+      <div class="review">
+        <strong>{{ review.reviewer_name|default:review.user.username|default:'Anonymous' }}</strong>
+        <small> · ★ {{ review.rating }} · {{ review.created_at }}</small>
+        {% if review.comment %}<div style="margin-top:4px;">{{ review.comment }}</div>{% endif %}
+      </div>
+    {% empty %}
+      <p>No reviews yet.</p>
+    {% endfor %}
+  </section>
+
+  {% if related_products %}
+  <section class="card">
+    <h3 style="padding:12px 12px 0; margin:0;">More from {{ product.vendor.name }}</h3>
+    <div class="related">
+      {% for item in related_products %}
+      <a class="mini" href="{% url 'marketapp:product-detail' item.id|encid %}">
+        {% if item.main_thumbnail %}<img src="{{ item.main_thumbnail.url }}" alt="{{ item.name }}">{% elif item.gallery.first %}<img src="{{ item.gallery.first.image.url }}" alt="{{ item.name }}">{% endif %}
+        <div><strong>{{ item.name }}</strong><div style="color:var(--primary);font-weight:700;">{{ item.display_price|default:item.price|money:item.vendor }}</div></div>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</main>
+{% endblock %}
+
+{% block page_js %}
+<script>
+(function () {
+  const preview = document.getElementById('main-preview');
+  const thumbs = document.querySelectorAll('.gallery img[data-image-src]');
+  if (!preview || thumbs.length === 0 || preview.tagName !== 'IMG') return;
+  thumbs.forEach((thumb) => {
+    thumb.addEventListener('click', function () {
+      const src = this.getAttribute('data-image-src');
+      if (!src) return;
+      preview.setAttribute('src', src);
+      thumbs.forEach((img) => img.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+})();
+</script>
+{% endblock %}

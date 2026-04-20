@@ -1,0 +1,45 @@
+{% extends "base_vendor.html" %}
+{% load secure_ids %}
+{% block title %}Packages{% endblock %}
+{% block content %}
+{% if package_alarms %}
+<section class="card" style="border-left:4px solid #f79009;background:#fffaeb;">
+  <strong style="color:#b54708;">License Alarm</strong>
+  <ul style="margin:8px 0 0 18px;">
+    {% for alarm in package_alarms %}
+      <li>
+        {{ alarm.vendor_name }}:
+        {% if alarm.is_today %}
+          expires today ({{ alarm.ends_on }})
+        {% else %}
+          expires in {{ alarm.days_left }} day{{ alarm.days_left|pluralize }} ({{ alarm.ends_on }})
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+<section class="card">
+  <a class="btn" href="{% url 'vendorapp:package-create' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Create Package</a>
+</section>
+<section class="card">
+  <table>
+    <thead><tr><th>Vendor</th><th>Package</th><th>Max Products</th><th>Starts</th><th>Ends</th><th>Active</th><th>Action</th></tr></thead>
+    <tbody>
+      {% for package in packages %}
+      <tr>
+        <td>{{ package.vendor.name }}</td>
+        <td>{{ package.name }}</td>
+        <td>{{ package.max_products }}</td>
+        <td>{{ package.starts_on }}</td>
+        <td>{{ package.ends_on }}</td>
+        <td>{% if package.is_active %}Yes{% else %}No{% endif %}</td>
+        <td><a class="btn alt" href="{% url 'vendorapp:package-update' package.pk|encid %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Edit</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7">No packages found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

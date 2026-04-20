@@ -1,0 +1,17 @@
+{% extends "base_vendor.html" %}
+{% load secure_ids %}
+{% block title %}Adjust Stock{% endblock %}
+{% block content %}
+<section class="card">
+  <h3>Adjust Stock: {{ product.name }}</h3>
+  <p><strong>Current stock:</strong> {{ product.stock_quantity }}</p>
+  <form method="post">
+    {% csrf_token %}
+    {% if selected_vendor %}
+      <input type="hidden" name="selected_vendor_id" value="{{ selected_vendor.id|encid }}">
+    {% endif %}
+    {{ form.as_p }}
+    <button class="btn" type="submit">Update Stock</button>
+  </form>
+</section>
+{% endblock %}

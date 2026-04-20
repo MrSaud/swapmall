@@ -1,0 +1,82 @@
+{% extends "base_vendor.html" %}
+{% load secure_ids money_tags %}
+{% block title %}Products{% endblock %}
+{% block content %}
+<section class="card">
+  {% if package_status.can_add_products %}
+    <a class="btn" href="{% url 'vendorapp:product-create' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Create Product</a>
+  {% else %}
+    <button class="btn" type="button" disabled style="opacity:.6;cursor:not-allowed;">Create Product Disabled</button>
+    {% if package_status.message %}<div style="margin-top:8px;color:#b42318;">{{ package_status.message }}</div>{% endif %}
+  {% endif %}
+  <a class="btn alt" href="{% url 'vendorapp:product-export' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Export CSV</a>
+  <a class="btn alt" href="{% url 'vendorapp:saved-filter-create' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Save Current View</a>
+  {% if saved_filters %}
+    <div style="margin-top:8px;">
+      {% for sf in saved_filters %}
+        <a class="btn alt" href="{% url 'vendorapp:saved-filter-apply' sf.pk|encid %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">{{ sf.name }}</a>
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>
+<section class="card">
+  <form method="post" action="{% url 'vendorapp:product-bulk' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">
+    {% csrf_token %}
+    {% if selected_vendor %}
+      <input type="hidden" name="selected_vendor_id" value="{{ selected_vendor.id|encid }}">
+    {% endif %}
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
+      <select name="bulk_action" style="max-width:220px;">
+        <option value="activate">Bulk Activate</option>
+        <option value="deactivate">Bulk Deactivate</option>
+        <option value="delete">Bulk Delete</option>
+      </select>
+      <button class="btn" type="submit">Apply Bulk</button>
+    </div>
+  <table>
+    <thead><tr><th><input type="checkbox" onclick="document.querySelectorAll('.product-check').forEach(el => el.checked=this.checked)"></th><th>Photo</th><th>Name</th><th>Vendor</th><th>Price</th><th>Stock</th><th>Share QR</th><th>Action</th></tr></thead>
+    <tbody>
+      {% for product in products %}
+      <tr>
+        <td><input class="product-check" type="checkbox" name="product_tokens" value="{{ product.pk|encid }}"></td>
+        <td>
+          {% if product.main_thumbnail %}
+            <img src="{{ product.main_thumbnail.url }}" alt="{{ product.name }}" style="width:56px;height:56px;border-radius:10px;object-fit:cover;">
+          {% elif product.gallery.first %}
+            <img src="{{ product.gallery.first.image.url }}" alt="{{ product.name }}" style="width:56px;height:56px;border-radius:10px;object-fit:cover;">
+          {% else %}
+            <span style="font-size:0.82rem;opacity:.7;">No photo</span>
+          {% endif %}
+        </td>
+        <td>{{ product.name }}</td>
+        <td>{{ product.vendor.name }}</td>
+        <td>{{ product.price|money:product.vendor }}</td>
+        <td>
+          {{ product.stock_quantity }}
+          {% if product.is_digital %}<br><small style="color:#0b7a45;">Digital</small>{% endif %}
+          <br>
+          <small>
+            {% if product.category_ref %}{{ product.category_ref.name }}{% elif product.category %}{{ product.category }}{% else %}No category{% endif %}
+          </small>
+          <br>
+          <small>{{ product.gallery.count }} extra photos</small>
+        </td>
+        <td>
+          <img src="{{ product.share_qr_src }}" alt="QR for {{ product.name }}" style="width:64px;height:64px;border-radius:8px;border:1px solid #e2e8e5;">
+          <br>
+          <a href="{{ product.share_url }}" target="_blank" rel="noopener">Open</a>
+        </td>
+        <td>
+          <a class="btn alt" href="{% url 'vendorapp:product-update' product.pk|encid %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Edit</a>
+          <a class="btn alt" href="{% url 'vendorapp:product-stock-adjust' product.pk|encid %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Stock</a>
+          <a class="btn" href="{% url 'vendorapp:product-delete' product.pk|encid %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Delete</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8">No products yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base_vendor.html" %}
+{% load secure_ids %}
+{% block title %}Support Tickets{% endblock %}
+{% block content %}
+<section class="card">
+  <a class="btn" href="{% url 'vendorapp:ticket-create' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Create Ticket</a>
+</section>
+<section class="card">
+  <table>
+    <thead><tr><th>Title</th><th>Vendor</th><th>Priority</th><th>Status</th><th>Assigned</th><th>Action</th></tr></thead>
+    <tbody>
+      {% for ticket in tickets %}
+      <tr>
+        <td>{{ ticket.title }}</td>
+        <td>{{ ticket.vendor.name }}</td>
+        <td>{{ ticket.get_priority_display }}</td>
+        <td>{{ ticket.get_status_display }}</td>
+        <td>{% if ticket.assigned_to %}{{ ticket.assigned_to.username }}{% else %}-{% endif %}</td>
+        <td><a class="btn alt" href="{% url 'vendorapp:ticket-update' ticket.pk|encid %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Edit</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6">No tickets found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base_market.html" %}
+{% load secure_ids %}
+
+{% block title %}Order Completed{% endblock %}
+
+{% block page_css %}
+.wrap { max-width: 840px; }
+.card { background:#fff; border:1px solid #dde6e2; border-radius:12px; padding:12px; margin-bottom:10px; }
+.btn { border:0; background:#1b4d3e; color:#fff; border-radius:8px; padding:8px 10px; text-decoration:none; display:inline-block; }
+{% endblock %}
+
+{% block topbar %}
+<strong>Order Completed</strong>
+<a href="{% url 'marketapp:home' %}">Back to Market</a>
+{% endblock %}
+
+{% block content %}
+<main class="wrap">
+  <section class="card">
+    <h3 style="margin-top:0;">Thank you. Your order was created.</h3>
+    {% if order_numbers %}
+    <p><strong>Order Numbers:</strong> {{ order_numbers|join:", " }}</p>
+    {% endif %}
+  </section>
+
+  {% if downloads %}
+  <section class="card">
+    <h3 style="margin-top:0;">Digital Downloads</h3>
+    <p>You can download purchased digital products from here.</p>
+    <table style="width:100%;border-collapse:collapse;">
+      <thead><tr><th style="text-align:left;padding:8px;">Product</th><th style="text-align:left;padding:8px;">Order</th><th style="text-align:left;padding:8px;">Remaining</th><th style="text-align:left;padding:8px;">Download</th></tr></thead>
+      <tbody>
+        {% for d in downloads %}
+        <tr>
+          <td style="padding:8px;border-top:1px solid #edf2f0;">{{ d.order_item.product_name }}</td>
+          <td style="padding:8px;border-top:1px solid #edf2f0;">{{ d.order_item.order.order_number }}</td>
+          <td style="padding:8px;border-top:1px solid #edf2f0;">{{ d.remaining_downloads }}</td>
+          <td style="padding:8px;border-top:1px solid #edf2f0;"><a class="btn" href="{% url 'marketapp:digital-download' d.id|encid %}">Download</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  {% endif %}
+</main>
+{% endblock %}

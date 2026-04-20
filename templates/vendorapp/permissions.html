@@ -1,0 +1,36 @@
+{% extends "base_vendor.html" %}
+{% load secure_ids %}
+{% block title %}Permission Matrix{% endblock %}
+{% block content %}
+<section class="card">
+  <h3>Add / Override Permission</h3>
+  <form method="post">
+    {% csrf_token %}
+    {% if selected_vendor %}
+      <input type="hidden" name="selected_vendor_id" value="{{ selected_vendor.id|encid }}">
+    {% endif %}
+    {{ form.as_p }}
+    <button class="btn" type="submit">Save Permission</button>
+  </form>
+</section>
+
+<section class="card">
+  <h3>Current Overrides</h3>
+  <table>
+    <thead><tr><th>User</th><th>Vendor</th><th>Module</th><th>Action</th><th>Allowed</th></tr></thead>
+    <tbody>
+      {% for perm in permissions %}
+      <tr>
+        <td>{{ perm.membership.user.username }}</td>
+        <td>{{ perm.membership.vendor.name }}</td>
+        <td>{{ perm.get_module_display }}</td>
+        <td>{{ perm.get_action_display }}</td>
+        <td>{% if perm.is_allowed %}Yes{% else %}No{% endif %}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5">No permission overrides.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

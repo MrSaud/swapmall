@@ -1,0 +1,387 @@
+{% load secure_ids %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Vendor Panel{% endblock %}</title>
+  <style>
+    :root {
+      --primary: {{ theme.primary_color|default:'#1b4d3e' }};
+      --secondary: {{ theme.secondary_color|default:'#f4a259' }};
+      --bg: {{ theme.background_color|default:'#f6f9f7' }};
+      --text: {{ theme.text_color|default:'#13231f' }};
+      --card: #ffffff;
+      --menu-icon: {{ theme.primary_color|default:'#1b4d3e' }};
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      color: var(--text);
+      padding-bottom: 56px;
+    }
+    .top {
+      background: var(--primary);
+      color: #fff;
+      padding: 14px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand { font-weight: 800; letter-spacing: 0.3px; }
+    .top-right { display: flex; align-items: center; gap: 8px; }
+    .menu-btn {
+      display: none;
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      background: rgba(255, 255, 255, 0.16);
+      color: #fff;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .pin-btn {
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      background: rgba(255, 255, 255, 0.16);
+      color: #fff;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .vendor-switch {
+      min-width: 170px;
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.16);
+      color: #fff;
+      padding: 8px;
+      margin: 0;
+    }
+    .vendor-switch option { color: #13231f; }
+    .logout { color: #fff; text-decoration: none; font-size: 0.92rem; }
+    .shell { max-width: 980px; margin: 0 auto; padding: 14px; }
+    .base-footer {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 20;
+      text-align: center;
+      padding: 10px 12px;
+      font-size: 0.84rem;
+      color: #fff;
+      background: var(--primary);
+      border-top: 2px solid var(--secondary);
+    }
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding: 8px;
+      border-radius: 14px;
+      background: color-mix(in srgb, #ffffff 72%, var(--bg));
+      border: 1px solid #dfe8e4;
+      box-shadow: 0 10px 22px rgba(20, 37, 31, 0.08);
+    }
+    .tabs a {
+      text-decoration: none;
+      color: color-mix(in srgb, var(--text) 92%, #0f1916);
+      background: linear-gradient(140deg, #ffffff, color-mix(in srgb, var(--bg) 44%, #fff));
+      border: 1px solid #cfdbd7;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.1px;
+      transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease;
+    }
+    .tabs a:hover {
+      transform: translateY(-1px);
+      border-color: color-mix(in srgb, var(--primary) 42%, #cbd8d3);
+      box-shadow: 0 8px 14px rgba(18, 35, 30, 0.10);
+      background: linear-gradient(140deg, color-mix(in srgb, var(--primary) 10%, #fff), #fff);
+    }
+    .tabs a:focus-visible {
+      outline: 2px solid color-mix(in srgb, var(--secondary) 60%, #fff);
+      outline-offset: 2px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid #e1e9e6;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 8px 16px rgba(17, 37, 31, 0.06);
+    }
+    .grid { display: grid; gap: 10px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .metric { border-left: 4px solid var(--secondary); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+    th, td { padding: 10px 8px; border-bottom: 1px solid #ecf0ee; text-align: left; }
+    .btn {
+      display: inline-block;
+      border: 0;
+      border-radius: 8px;
+      padding: 8px 10px;
+      text-decoration: none;
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.9rem;
+    }
+    .btn.alt { background: #274f87; }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #d8e1de;
+      border-radius: 8px;
+      padding: 10px;
+      margin: 4px 0 10px;
+    }
+    .messages { margin-bottom: 10px; }
+    .msg { background: #e9f7ef; border: 1px solid #c8e9d4; padding: 10px; border-radius: 8px; }
+    .msg.error { background: #fef3f2; border-color: #fecdca; color: #b42318; }
+    .msg.warning { background: #fffaeb; border-color: #fedf89; color: #b54708; }
+    .msg.success { background: #ecfdf3; border-color: #abefc6; color: #067647; }
+    .errorlist {
+      margin: 6px 0 8px;
+      padding-left: 18px;
+      color: #b42318;
+      font-size: 0.92rem;
+    }
+    .errorlist li { margin: 2px 0; }
+    @media (max-width: 760px) {
+      body { padding-bottom: 64px; }
+      .shell { margin-left: 0; max-width: 980px; padding: 14px; }
+      .top {
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .menu-btn { display: inline-block; }
+      .pin-btn { display: none; }
+      .top-right {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .top-right form { grid-column: 1 / -1; }
+      .vendor-switch { width: 100%; min-width: 0; }
+      .mobile-nav {
+        position: sticky;
+        top: 62px;
+        z-index: 9;
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(4px);
+        border: 1px solid #d6dfdc;
+        border-radius: 12px;
+        padding: 10px;
+        margin-bottom: 12px;
+        display: none;
+      }
+      .mobile-nav.open { display: block; }
+      .tabs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 9px;
+        margin: 0;
+        padding: 9px;
+      }
+      .tabs a {
+        border-radius: 12px;
+        text-align: center;
+        font-size: 0.88rem;
+        padding: 11px 10px;
+      }
+      .grid { grid-template-columns: 1fr; }
+      table, thead, tbody, tr, th, td { display: block; }
+      thead { display: none; }
+      tr { margin-bottom: 10px; border: 1px solid #ecf0ee; border-radius: 10px; }
+      td { border: 0; border-bottom: 1px solid #f1f4f3; }
+      td:last-child { border-bottom: 0; }
+      .base-footer { font-size: 0.78rem; padding: 8px 10px; }
+    }
+    @media (min-width: 761px) {
+      .mobile-nav {
+        display: block !important;
+        position: fixed;
+        top: 62px;
+        left: 0;
+        bottom: 56px;
+        width: 252px;
+        padding: 12px 10px;
+        overflow-y: auto;
+        z-index: 8;
+        border-right: 1px solid #d8e2de;
+        background: color-mix(in srgb, var(--bg) 74%, #fff);
+        backdrop-filter: blur(2px);
+        transition: width .2s ease, background .2s ease;
+      }
+      .mobile-nav .tabs {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        margin: 0;
+        padding: 8px;
+        box-shadow: none;
+      }
+      .mobile-nav .tabs a {
+        width: 100%;
+        text-align: left;
+        border-radius: 12px;
+        padding: 11px 12px;
+      }
+      .shell {
+        margin-left: 258px;
+        max-width: none;
+        padding: 14px 16px;
+        transition: margin-left .2s ease;
+      }
+      body.sidebar-collapsed .mobile-nav {
+        width: 78px;
+      }
+      body.sidebar-collapsed .mobile-nav .tabs a {
+        font-size: 0;
+        padding: 11px 8px;
+        text-align: center;
+      }
+      body.sidebar-collapsed .mobile-nav .tabs a::before {
+        content: attr(data-icon);
+        font-size: 0.95rem;
+        color: var(--menu-icon);
+        font-weight: 700;
+      }
+      body.sidebar-collapsed .shell {
+        margin-left: 86px;
+      }
+      body.sidebar-collapsed .mobile-nav:hover {
+        width: 252px;
+        background: color-mix(in srgb, var(--bg) 86%, #fff);
+      }
+      body.sidebar-collapsed .mobile-nav:hover .tabs a {
+        font-size: 0.9rem;
+        padding: 11px 12px;
+        text-align: left;
+      }
+      body.sidebar-collapsed .mobile-nav:hover .tabs a::before {
+        content: "";
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">Vendor Panel{% if selected_vendor %} · {{ selected_vendor.name }}{% endif %}</div>
+    <button type="button" class="menu-btn" id="menuToggle" aria-controls="mobileNav" aria-expanded="false">Menu</button>
+    <div class="top-right">
+      <button type="button" class="pin-btn" id="pinSidebar" title="Pin or auto-hide menu">📌</button>
+      {% if selected_vendor %}
+      <a class="logout" href="{% url 'marketapp:home' %}?vendor={{ selected_vendor.id|encid }}" target="_blank" rel="noopener">My Store</a>
+      {% else %}
+      <a class="logout" href="{% url 'marketapp:home' %}" target="_blank" rel="noopener">My Store</a>
+      {% endif %}
+      {% if request.user.is_superuser %}
+      <form method="get" action="">
+        <select class="vendor-switch" name="vendor" onchange="this.form.submit()">
+          {% for vendor in vendors %}
+            <option value="{{ vendor.id|encid }}" {% if selected_vendor and vendor.id == selected_vendor.id %}selected{% endif %}>
+              {{ vendor.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </form>
+      {% endif %}
+      <a class="logout" href="/logout/">Logout</a>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="mobile-nav" id="mobileNav">
+      <nav class="tabs">
+        <a data-icon="⌂" href="{% url 'vendorapp:dashboard' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Dashboard</a>
+        <a data-icon="◧" href="{% url 'vendorapp:product-list' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Products</a>
+        <a data-icon="%" href="{% url 'vendorapp:offer-list' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Offers</a>
+        <a data-icon="★" href="{% url 'vendorapp:review-list' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Reviews</a>
+        <a data-icon="▣" href="{% url 'vendorapp:hero-slide-list' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Hero Slides</a>
+        <a data-icon="◫" href="{% url 'vendorapp:category-list' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Categories</a>
+        <a data-icon="≡" href="{% url 'marketapp:order-list' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Orders</a>
+        <a data-icon="◔" href="{% url 'vendorapp:analytics' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Analytics</a>
+        <a data-icon="◉" href="{% url 'vendorapp:ticket-list' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Tickets</a>
+        <a data-icon="✉" href="{% url 'vendorapp:invite-list' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Invites</a>
+        <a data-icon="⌕" href="{% url 'vendorapp:saved-filter-list' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Saved Filters</a>
+        {% if request.user.is_superuser %}
+        <a data-icon="◩" href="{% url 'vendorapp:package-list' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Packages</a>
+        <a data-icon="$" href="{% url 'vendorapp:invoice-list' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Invoices</a>
+        <a data-icon="⌘" href="{% url 'vendorapp:permissions' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Permissions</a>
+        {% endif %}
+        <a data-icon="▤" href="{% url 'vendorapp:audit-log-list' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Audit</a>
+        <a data-icon="◎" href="{% url 'vendorapp:staff-list' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Staff</a>
+        <a data-icon="◌" href="{% url 'vendorapp:settings' %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Theme</a>
+      </nav>
+    </div>
+
+    {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+          <div class="msg {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="base-footer">SWAPMALL by swapkuwait</footer>
+  <script>
+    (function () {
+      var btn = document.getElementById("menuToggle");
+      var nav = document.getElementById("mobileNav");
+      var pin = document.getElementById("pinSidebar");
+      if (!btn || !nav) return;
+      var key = "vendor_sidebar_pinned";
+      function applySidebarState(isPinned) {
+        if (window.innerWidth <= 760) return;
+        document.body.classList.toggle("sidebar-collapsed", !isPinned);
+        if (pin) pin.textContent = isPinned ? "📌" : "📍";
+        if (pin) pin.title = isPinned ? "Fixed menu enabled" : "Auto-hide menu enabled";
+      }
+      if (pin) {
+        var stored = localStorage.getItem(key);
+        applySidebarState(stored !== "0");
+        pin.addEventListener("click", function () {
+          var currentlyPinned = !document.body.classList.contains("sidebar-collapsed");
+          var nextPinned = !currentlyPinned;
+          localStorage.setItem(key, nextPinned ? "1" : "0");
+          applySidebarState(nextPinned);
+        });
+      }
+      btn.addEventListener("click", function () {
+        var open = nav.classList.toggle("open");
+        btn.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+      nav.querySelectorAll("a").forEach(function (a) {
+        a.addEventListener("click", function () {
+          if (window.innerWidth <= 760) {
+            nav.classList.remove("open");
+            btn.setAttribute("aria-expanded", "false");
+          }
+        });
+      });
+      window.addEventListener("resize", function () {
+        if (window.innerWidth <= 760) {
+          document.body.classList.remove("sidebar-collapsed");
+        } else if (pin) {
+          applySidebarState(localStorage.getItem(key) !== "0");
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

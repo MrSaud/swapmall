@@ -1,0 +1,31 @@
+{% extends "base_vendor.html" %}
+{% load secure_ids %}
+{% block title %}Product Reviews{% endblock %}
+{% block content %}
+<section class="card">
+  <h3 style="margin-top:0;">Review Comments</h3>
+  <p style="margin:0;">Staff and superadmin can delete inappropriate or unwanted review comments.</p>
+</section>
+<section class="card">
+  <table>
+    <thead><tr><th>Product</th><th>Vendor</th><th>Reviewer</th><th>Rating</th><th>Comment</th><th>Date</th><th>Action</th></tr></thead>
+    <tbody>
+      {% for review in reviews %}
+      <tr>
+        <td>{{ review.product.name }}</td>
+        <td>{{ review.product.vendor.name }}</td>
+        <td>{{ review.reviewer_name|default:review.user.username|default:'Anonymous' }}</td>
+        <td>{{ review.rating }}/5</td>
+        <td>{{ review.comment|default:'-' }}</td>
+        <td>{{ review.created_at }}</td>
+        <td>
+          <a class="btn" href="{% url 'vendorapp:review-delete' review.pk|encid %}{% if selected_vendor %}?vendor={{ selected_vendor.id|encid }}{% endif %}">Delete</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7">No reviews found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

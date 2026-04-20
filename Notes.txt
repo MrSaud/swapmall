@@ -1,0 +1,16 @@
+AWS MySQL & Django App Super Admin 
+root
+Sun!42ZIZO_River#9
+
+Ahmad
+D7$Tx4#Ym
+
+
+source .venv/bin/activate 
+python manage.py runserver  
+
+python manage.py makemigrations
+python manage.py migrate
+
+
+pip freeze > requirements.txt
